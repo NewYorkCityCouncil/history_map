@@ -6,7 +6,41 @@ library(dplyr)
 library(scales)
 library(bslib)
 
-nyc_data <- st_read("data/data.geojson")
+nyc_data <- st_read("data/data.geojson") %>%
+  mutate(
+    popup = paste0(
+      ifelse(
+        !is.na(income),
+        paste0("Income: ", scales::dollar(income), "<br>"),
+        ""
+      ),
+      ifelse(
+        !is.na(perc_white),
+        paste0("White: ", scales::percent(perc_white, accuracy = 0.1)),
+        ""
+      ),
+      ifelse(
+        !is.na(perc_hispanic),
+        paste0(
+          "<br>Hispanic: ",
+          scales::percent(perc_hispanic, accuracy = 0.1)
+        ),
+        ""
+      ),
+      ifelse(
+        !is.na(perc_asian),
+        paste0("<br>Asian: ", scales::percent(perc_asian, accuracy = 0.1)),
+        ""
+      ),
+      ifelse(
+        !is.na(perc_other),
+        paste0("<br>Other Race: ", scales::percent(perc_other, accuracy = 0.1)),
+        ""
+      )
+    )
+  )
+
+
 breaks <- read_csv("data/breaks.csv")
 
 
@@ -298,9 +332,12 @@ server <- function(input, output, session) {
   })
 
   # ---- Filter data ----
+  nyc_by_year <- split(nyc_data, nyc_data$year)
+
   filtered_data <- reactive({
-    nyc_data %>% filter(year == input$year)
-  })
+    nyc_by_year[[as.character(input$year)]]
+  }) %>%
+    bindCache(input$year)
 
   # ---- Color palette ----
   color_pal <- reactive({
@@ -333,7 +370,8 @@ server <- function(input, output, session) {
         bins = 8
       )
     }
-  })
+  }) %>%
+    bindCache(input$year, input$selected_var)
 
   # ---- Initial map ----
   output$map <- renderLeaflet({
@@ -347,95 +385,68 @@ server <- function(input, output, session) {
   })
 
   # ---- Update map ---
-  observe({
-    df <- filtered_data()
+  observeEvent(
+    list(input$year, input$selected_var),
+    {
+      df <- filtered_data()
 
-    req(input$selected_var %in% colnames(df))
+      req(input$selected_var %in% colnames(df))
 
-    values <- df[[input$selected_var]]
+      df$values <- df[[input$selected_var]]
 
-    req(!is.null(values))
-    req(any(!is.na(values)))
+      req(!is.null(df$values))
+      req(any(!is.na(df$values)))
 
-    pal <- color_pal()
+      pal <- color_pal()
 
-    leafletProxy("map", data = df) %>%
-      clearShapes() %>%
-      clearControls() %>%
+      leafletProxy("map", data = df) %>%
+        clearShapes() %>%
+        clearControls() %>%
 
-      addPolygons(
-        fillColor = ~ pal(get(input$selected_var)),
-        fillOpacity = 0.7,
-        color = "black",
-        weight = 0.5,
+        addPolygons(
+          fillColor = ~ pal(values),
+          fillOpacity = 0.7,
+          color = "black",
+          weight = 0.5,
 
-        popup = ~ paste0(
-          if (input$year >= 1950) {
-            paste0(
-              "Income: ",
-              scales::dollar(get("income"), accuracy = 10),
-              "<br>"
+          popup = ~popup,
+
+          highlightOptions = highlightOptions(
+            weight = 2,
+            color = "blue",
+            bringToFront = TRUE
+          )
+        ) %>%
+
+        addLegend(
+          pal = pal,
+          values = df$values,
+          position = "bottomright",
+          title = switch(
+            input$selected_var,
+            "perc_white" = "% White",
+            "perc_black" = "% Black",
+            "perc_hispanic" = "% Hispanic",
+            "perc_asian" = "% Asian",
+            "perc_other" = "% Other",
+            "income" = "Med. Income"
+          ),
+          labFormat = if (input$selected_var == "income") {
+            labelFormat(
+              prefix = "$",
+              big.mark = ",",
+              digits = 0
             )
-          },
-          "White: ",
-          scales::percent(get("perc_white"), accuracy = 0.1),
-          if (input$year >= 1950) {
-            paste0(
-              "<br>Black: ",
-              scales::percent(get("perc_black"), accuracy = 0.1)
+          } else {
+            labelFormat(
+              transform = function(x) 100 * x,
+              suffix = "%",
+              digits = 1
             )
-          },
-          if (input$year >= 1980) {
-            paste0(
-              "<br>Hispanic: ",
-              scales::percent(get("perc_hispanic"), accuracy = 0.1)
-            )
-          },
-          if (input$year >= 1970) {
-            paste0(
-              "<br>Asian: ",
-              scales::percent(get("perc_asian"), accuracy = 0.1)
-            )
-          },
-          "<br>Other Race: ",
-          scales::percent(get("perc_other"), accuracy = 0.1)
-        ),
-
-        highlightOptions = highlightOptions(
-          weight = 2,
-          color = "blue",
-          bringToFront = TRUE
+          }
         )
-      ) %>%
-
-      addLegend(
-        pal = pal,
-        values = values,
-        position = "bottomright",
-        title = switch(
-          input$selected_var,
-          "perc_white" = "% White",
-          "perc_black" = "% Black",
-          "perc_hispanic" = "% Hispanic",
-          "perc_asian" = "% Asian",
-          "perc_other" = "% Other",
-          "income" = "Med. Income"
-        ),
-        labFormat = if (input$selected_var == "income") {
-          labelFormat(
-            prefix = "$",
-            big.mark = ",",
-            digits = 0
-          )
-        } else {
-          labelFormat(
-            transform = function(x) 100 * x,
-            suffix = "%",
-            digits = 1
-          )
-        }
-      )
-  })
+    }
+  )
 }
 
 shinyApp(ui, server)
