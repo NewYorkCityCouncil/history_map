@@ -602,6 +602,8 @@ breaks <- data %>%
   ) %>%
   unnest_longer(value, indices_to = "percentile") %>%
   mutate(percentile = as.numeric(str_remove(percentile, "%")) / 100) %>%
-  mutate(value = round(value, digits = -2))
+  mutate(
+    value = if_else(percentile %in% c(0, 1), value, round(value, digits = -2))
+  )
 
 write_csv(breaks, "data/breaks.csv")
