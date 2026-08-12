@@ -20,6 +20,14 @@ nyc_data <- st_read("data/data.geojson") %>%
         ""
       ),
       ifelse(
+        !is.na(perc_black),
+        paste0(
+          "<br>Black: ",
+          scales::percent(perc_black, accuracy = 0.1)
+        ),
+        ""
+      ),
+      ifelse(
         !is.na(perc_hispanic),
         paste0(
           "<br>Hispanic: ",
