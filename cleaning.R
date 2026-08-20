@@ -594,7 +594,7 @@ breaks <- data %>%
     value = list(
       quantile(
         income,
-        probs = seq(0, 1, by = 0.1),
+        probs = seq(0.1, 0.9, by = 0.1),
         na.rm = TRUE
       )
     ),
