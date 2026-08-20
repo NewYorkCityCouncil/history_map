@@ -129,8 +129,6 @@ ui <- page_navbar(
 
       /* ---------------- Navbar ---------------- */
 
-
-
       .navbar .navbar-brand {
         position: absolute;
         left: 50%;
@@ -146,7 +144,6 @@ ui <- page_navbar(
         text-align: center;
         white-space: nowrap;
       }
-
 
       .navbar .navbar-nav {
         margin-left: 0;
