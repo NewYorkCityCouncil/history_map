@@ -1,1 +1,4 @@
 /geometries/
+node_modules/
+dist/
+*.tsbuildinfo

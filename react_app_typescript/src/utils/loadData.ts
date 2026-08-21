@@ -15,7 +15,7 @@ import type { BreakRow, TractFeatureCollection } from "../types/data.ts";
  *   perc_asian    (number|null) - 0-1
  *   perc_other    (number|null) - 0-1
  */
-export async function loadGeoData(url = "/data/data.geojson"): Promise<TractFeatureCollection> {
+export async function loadGeoData(url = "/Dashboards/history_map/data/data.geojson"): Promise<TractFeatureCollection> {
   const res = await fetch(url);
   if (!res.ok) {
     throw new Error(`Failed to load ${url}: ${res.status} ${res.statusText}`);
@@ -30,7 +30,7 @@ export async function loadGeoData(url = "/data/data.geojson"): Promise<TractFeat
  * Expected columns: year, value (one row per interior break point,
  * multiple rows per year).
  */
-export async function loadBreaksData(url = "/data/breaks.csv"): Promise<BreakRow[]> {
+export async function loadBreaksData(url = "/Dashboards/history_map/data/breaks.csv"): Promise<BreakRow[]> {
   const rows = await d3csv(url, (d): BreakRow => ({
     year: Number(d.year),
     value: Number(d.value),

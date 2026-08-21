@@ -30,7 +30,7 @@ export default function Legend({ selectedVar, colors, bins, isCurrency }: Legend
   const map = useMap();
 
   useEffect(() => {
-    const control = L.control({ position: "bottomright" });
+    const control = new L.Control({ position: "bottomright" });
 
     control.onAdd = () => {
       const div = L.DomUtil.create("div", "map-legend");
