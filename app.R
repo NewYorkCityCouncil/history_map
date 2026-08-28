@@ -381,7 +381,17 @@ server <- function(input, output, session) {
   # ---- Initial map ----
   output$map <- renderLeaflet({
     leaflet() %>%
-      addProviderTiles(providers$CartoDB.Positron) %>%
+      addTiles(
+        urlTemplate = paste0(
+          "https://{s}.basemaps.cartocdn.com/rastertiles/light_all/{z}/{x}/{y}.png?key=",
+          Sys.getenv("CARTO_API_KEY")
+        ),
+        attribution = '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy <a href="https://carto.com/attributions">CARTO</a>',
+        options = tileOptions(
+          subdomains = c("a", "b", "c", "d"),
+          maxZoom = 20
+        )
+      ) %>%
       setView(
         lng = -73.94,
         lat = 40.70,
