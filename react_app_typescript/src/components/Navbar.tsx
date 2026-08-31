@@ -1,3 +1,6 @@
+import logo from "../assets/data-council-logo-white.png";
+
+
 export default function Navbar() {
   return (
     <header className="navbar">
@@ -22,7 +25,7 @@ export default function Navbar() {
 
       <img
         className="navbar-logo"
-        src="/data-council-logo-white.png"
+        src={logo}
         alt="NYC Council"
       />
     </header>
