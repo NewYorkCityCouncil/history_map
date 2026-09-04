@@ -607,7 +607,3 @@ breaks <- data %>%
   )
 
 write_csv(breaks, "data/breaks.csv")
-
-
-library(leaflet)
-library(councildown)
