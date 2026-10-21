@@ -13,7 +13,7 @@ export default function Navbar() {
           Data Home
         </a>
         <a
-          href="https://rnd.council.nyc.gov/shiny/DashboardDepot/"
+          href="https://rnd.council.nyc.gov/Dashboards/shiny_lib/"
           target="_blank"
           rel="noopener noreferrer"
         >
